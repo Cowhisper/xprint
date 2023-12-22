@@ -14,11 +14,11 @@ from .ansi_code import SGR, ESC, RESET, COLORS
 
 INVALID_COLOR = -1
 DEFAULT_COLOR = 0
-BIT4_COLOR = 1
+BIT8_COLOR = 1
 RGB_COLOR = 2
 
 
-BIT4_COLOR_MAP = {
+BIT8_COLOR_MAP = {
     'black': (0, 0, 0),
     'red': (255, 0, 0),
     'green': (0, 255, 0),
@@ -95,7 +95,7 @@ def _parse_color_type(color):
                 return INVALID_COLOR
         else:
             color = COLORS.get_code(color.lower())
-        return BIT4_COLOR
+        return BIT8_COLOR
     return INVALID_COLOR
 
 
@@ -133,7 +133,7 @@ def _parse_complex_mode(string):
     return ret
 
 
-def bit4_colorize(
+def bit8_colorize(
         string: str,
         fg: str = '',
         bg: str = '',
@@ -141,7 +141,7 @@ def bit4_colorize(
         bright: bool = False,
         **kwargs):
     """
-    colorize a string using 4 bit colors.
+    colorize a string using 8 bit colors.
 
     Params:
         string: input string
@@ -225,12 +225,12 @@ def colorize(
         use_parser: bool = False,
         **kwargs):
     """
-    colorize a string using rgb colors or 4 bit color.
+    colorize a string using rgb colors or 8 bit color.
 
     Params:
         string: input string
-        fg:     foreground color. support both rgb format & 4 bit color.
-                see details at function `bit4_colorize` and `rgb_colorize`
+        fg:     foreground color. support both rgb format & 8 bit color.
+                see details at function `bit8_colorize` and `rgb_colorize`
         bg:     background color. same as fg.
         sgr:    style of input string. support both full-name / abbrev of
                 sgrs: NORMAL, BOLD, FAINT, ITALIC, UNDERLINE
@@ -250,11 +250,11 @@ def colorize(
         ctype = _parse_color_type(c)
         if ctype in (DEFAULT_COLOR, INVALID_COLOR):
             return "default"
-        elif ctype == BIT4_COLOR:
+        elif ctype == BIT8_COLOR:
             if not is_256color_terminal():
-                raise OSError('terminal do not support 256 color, use bit4_colorize instead')
+                raise OSError('terminal do not support 256 color, use bit8_colorize instead')
             else:
-                return BIT4_COLOR_MAP.get(c, 'default')
+                return BIT8_COLOR_MAP.get(c, 'default')
         return c
 
     kwargs.update({

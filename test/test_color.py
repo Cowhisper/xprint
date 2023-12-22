@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 sys.path.append('.')
-from xprint.colors import bit4_colorize, rgb_colorize, colorize, cprint
+from xprint.colors import bit8_colorize, rgb_colorize, colorize, cprint
 
 
 # test bit4
