@@ -5,6 +5,18 @@ from .ansi_code import *
 
 
 def flush(lines: int = 1):
+    """
+    Flush content in terminal. Default flush 1 line.
+    Args:
+        lines: number of lines to flush
+    
+    Usage:
+        >>> for i in range(iteration):
+        >>>     print(line1)
+        >>>     print(line2)
+        >>>     print(line3, end='')
+        >>>     flush(3)
+    """
     if lines <= 0:
         return
     elif lines == 1:
@@ -50,3 +62,19 @@ class Flushing:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.flush()
+
+
+def flush_print(s: str):
+    """
+    print a string with flush. Input string contains lines which are seperated by '\r'.
+
+    Eg.
+        >>> for i in range(iteration):
+        >>>     flush_print(f'{i}\r{i+1}\r{i+2}')
+        >>>     time.sleep(0.5)
+    """
+    lines = s.split('\r')
+    for line in lines[:-1]:
+        print(line)
+    print(lines[-1], end='')
+    flush(len(lines))

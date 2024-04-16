@@ -11,14 +11,17 @@ import re
 from typing import Union
 from .ansi_code import SGR, ESC, RESET, COLORS
 
+# ---------------------------------------------
+# Define variables
+# ---------------------------------------------
 
 INVALID_COLOR = -1
 DEFAULT_COLOR = 0
-BIT8_COLOR = 1
+BIT4_COLOR = 1
 RGB_COLOR = 2
 
 
-BIT8_COLOR_MAP = {
+COLOR_MAP = {
     'black': (0, 0, 0),
     'red': (255, 0, 0),
     'green': (0, 255, 0),
@@ -29,13 +32,33 @@ BIT8_COLOR_MAP = {
     'white': (255, 255, 255),
 }
 
+# ---------------------------------------------
+# color functions
+# ---------------------------------------------
 
 def is_256color_terminal():
+    """
+    Check if the current terminal supports 256 colors.
+
+    Returns:
+        bool: True if the terminal supports 256 colors, False otherwise.
+
+    Example:
+        is_supported = is_256color_terminal()
+        print(is_supported)  # True or False
+    """
     term = os.environ.get('TERM', '')
     if term in ('xterm', 'xterm-256color', 'screen', 'screen-256color'):
         return True
     else:
         return False
+
+
+def register_color(name, color):
+    """
+    register color
+    """
+    COLOR_MAP[name] = color
 
 
 def len_cstring(string):
@@ -70,7 +93,7 @@ def _parse_color(color):
                 return ''
         else:
             color = COLORS.get_code(color.lower())
-        return color
+            return color
     return ''
 
 
@@ -95,7 +118,7 @@ def _parse_color_type(color):
                 return INVALID_COLOR
         else:
             color = COLORS.get_code(color.lower())
-        return BIT8_COLOR
+            return BIT4_COLOR
     return INVALID_COLOR
 
 
@@ -133,7 +156,7 @@ def _parse_complex_mode(string):
     return ret
 
 
-def bit8_colorize(
+def bit4_colorize(
         string: str,
         fg: str = '',
         bg: str = '',
@@ -141,20 +164,21 @@ def bit8_colorize(
         bright: bool = False,
         **kwargs):
     """
-    colorize a string using 8 bit colors.
+    Colorize a string using 8-bit colors in a terminal.
 
-    Params:
-        string: input string
-        fg:     foreground color. support both full-name & abbrev of
-                colors: BLACK, RED, GREEN, YELLOW, BLUE, CYAN,
-                MAGENTA, WHITE or DEFAULT
-        bg:     background color. same as fg.
-        sgr:    style of input string. support both full-name / abbrev of
-                sgrs: NORMAL, BOLD, FAINT, ITALIC, UNDERLINE
-        bright: bright color or not.
+    Args:
+        string (str): The input string to be colorized.
+        fg (str): 
+            The foreground color. It can be specified as a full name or abbreviation of colors: BLACK, RED, GREEN, YELLOW, BLUE, CYAN, MAGENTA, WHITE, or DEFAULT.
+        bg (str): 
+            The background color. Same format as `fg`.
+        sgr (str): 
+            The style of the input string. It can be specified as a full name or abbreviation of styles: NORMAL, BOLD, FAINT, ITALIC, UNDERLINE.
+        bright (bool): 
+            Whether to use bright colors or not.
 
-    Return:
-        colored string
+    Returns:
+        str: The input string with the specified foreground color, background color, and style applied.
     """
 
     fg_color = _parse_color(fg)
@@ -184,18 +208,20 @@ def rgb_colorize(
         sgr: str = '',
         **kwargs):
     """
-    colorize a string using rgb colors.
+    Colorize a string using RGB colors.
 
-    Params:
-        string: input string
-        fg:     foreground color. support both rgb list / tuple & hex color
-                Eg. #FFFADA or (255, 0, 0)
-        bg:     background color. same as fg.
-        sgr:    style of input string. support both full-name / abbrev of
-                sgrs: NORMAL, BOLD, FAINT, ITALIC, UNDERLINE
+    Args:
+        string (str): The input string to be colorized.
+        fg (Union[tuple, list, str], optional): 
+            The foreground color. It can be specified as an RGB tuple, RGB list, or HEX RGB color. Defaults to an empty tuple ().
+        bg (Union[tuple, list, str], optional): 
+            The background color. Same format as `fg`. Defaults to an empty tuple ().
+        sgr (str, optional): 
+            The style of the input string. It can be specified as a full name or abbreviation of the following styles: 
+            "NORMAL", "BOLD", "FAINT", "ITALIC", "UNDERLINE". Defaults to an empty string.
 
-    Return:
-        colored string
+    Returns:
+        str: The input string with the specified foreground color, background color, and style applied.
     """
 
     fg_code = _parse_color(fg)
@@ -225,22 +251,43 @@ def colorize(
         use_parser: bool = False,
         **kwargs):
     """
-    colorize a string using rgb colors or 8 bit color.
+    Colorize a string using RGB colors or 8-bit color.
 
-    Params:
-        string: input string
-        fg:     foreground color. support both rgb format & 8 bit color.
-                see details at function `bit8_colorize` and `rgb_colorize`
-        bg:     background color. same as fg.
-        sgr:    style of input string. support both full-name / abbrev of
-                sgrs: NORMAL, BOLD, FAINT, ITALIC, UNDERLINE
-        option: colorize option. The option follow the rule:
-                option = f"fg:{fg}|bg:{bg}|sgr:{sgr}"
-                Eg.
-                >>> ctring = colorize('xprint', option='fg:(0,255,0)|sgr:italic')
+    Args:
+        string (str): The input string to be colorized.
+        fg (Union[tuple, list, str], optional): 
+            The foreground color. It can be specified as an RGB tuple, RGB list, 
+            HEX RGB color or a string representing an 8-bit color or "default". Defaults to 'default'.
+        bg (Union[tuple, list, str], optional): 
+            The background color. Same format as `fg`. Defaults to 'default'.
+        sgr (str, optional): 
+            The style of the input string. It can be specified as a full name or abbreviation of the following styles: 
+            "NORMAL", "BOLD", "FAINT", "ITALIC", "UNDERLINE". Defaults to ''.
+        option (str, optional): 
+            The colorize option. It follows the format: 
+            `option = f"fg:{fg}|bg:{bg}|sgr:{sgr}"`. This allows for more complex colorization options. Defaults to None.
+        use_parser (bool, optional): 
+            If True, the function will parse the input string for colorize options enclosed in `$[]()`. Defaults to False.
+        **kwargs: Additional keyword arguments that can be used to customize the colorization.
 
-    Return:
-        colored string
+    Returns:
+        str: The colored string.
+
+    Raises:
+        OSError: If the terminal does not support 256 colors and 8-bit color is used.
+
+    Example Usage:
+        # Example 1: Applying RGB color and style to a string
+        colored_string = colorize("Hello World", fg=(255, 0, 0), bg=(0, 0, 255), sgr="bold")
+        print(colored_string)  # Prints the string in red foreground, blue background, and bold style
+
+        # Example 2: Applying 8-bit color and style to a string
+        colored_string = colorize("Hello World", fg="red", bg="blue", sgr="bold", bright=True)
+        print(colored_string)  # Prints the string in bright red foreground, bright blue background, and bold style
+
+        # Example 3: Applying colorize option to a string
+        colored_string = colorize("Hello World", option="fg:(0,255,0)|sgr:italic")
+        print(colored_string)  # Prints the string in green foreground and italic style
     """
 
     if use_parser:
@@ -249,13 +296,13 @@ def colorize(
     def get_color(c):
         ctype = _parse_color_type(c)
         if ctype in (DEFAULT_COLOR, INVALID_COLOR):
-            return "default"
-        elif ctype == BIT8_COLOR:
+            return "default", ctype
+        elif ctype == BIT4_COLOR:
             if not is_256color_terminal():
-                raise OSError('terminal do not support 256 color, use bit8_colorize instead')
+                raise OSError("Terminal does not support 256 colors, please use bit4_colorize instead.")
             else:
-                return BIT8_COLOR_MAP.get(c, 'default')
-        return c
+                return COLOR_MAP.get(c, 'default'), ctype
+        return c, ctype
 
     kwargs.update({
         'string': string,
@@ -267,8 +314,8 @@ def colorize(
     if option:
         kwargs = _parse_option(kwargs, option)
 
-    kwargs['fg'] = get_color(kwargs['fg'])
-    kwargs['bg'] = get_color(kwargs['bg'])
+    kwargs['fg'], fg_ctype = get_color(kwargs['fg'])
+    kwargs['bg'], bg_ctype = get_color(kwargs['bg'])
 
     return rgb_colorize(**kwargs)
 

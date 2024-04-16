@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 import sys
 sys.path.append('.')
-from xprint.colors import bit8_colorize, rgb_colorize, colorize, cprint
+from xprint.colors import cprint, register_color
+
+# use pytest to tset colorize and cprint
 
 
 # test bit4
@@ -32,3 +34,7 @@ cprint('xprint', option='fg:(255,0,0)|bg:(0,0,255)|sgr:normal')
 cprint('xprint', option='fg:(255,0,0)|bg:(0,0,255)|sgr:faint')
 cprint('xprint', option='fg:(255,0,0)|bg:(0,0,255)|sgr:italic')
 cprint('xprint', option='fg:(255,0,0)|bg:(0,0,255)|sgr:underline')
+
+print('test use_parser')
+register_color('olive', '#808000')
+cprint('$[bg:cyan|fg:olive|sgr:bold](xprint)', use_parser=True)
